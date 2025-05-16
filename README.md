@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Video Highlights Editor
 
-## Getting Started
+一個基於 Next.js App Router 與 Tailwind CSS 的影片 Highlights 工具。使用者可以快速選取影片逐字稿句子，挑選並預覽 highlight 片段。
 
-First, run the development server:
+---
+
+## 💻 技術選型與理由
+
+### Next.js (App Router)
+
+最主要理由是這是自己近年來最熟悉的框架，包含SSR、SEO友善等特色。同時也粗略試寫一下先前尚未有機會在工作中實用的App Router。
+
+### TypeScript
+
+確保型別安全性，且建立好型別後可以提升後續的開發、維護、與共同作業效率。
+
+### Tailwind CSS
+
+寫作速度快且易於客製化，且若有需要時可在專案中覆寫或增加自訂的常用屬性。
+
+### Prettier
+
+在開發環境下加入Prettier以確保程式碼整潔有序。
+
+### ChatGPT
+
+嘗試在開發過程中大量利用 ChatGPT 的技術支援以加速開發效率，再以自己的經驗要求 ChatGPT 調整程式碼與檢查效能，最後再自己人工檢查與微調。
+
+### Vercel
+
+專為 Next.js 開發的部署平台
+
+---
+
+## 🛠 安裝與執行
 
 ```bash
-npm run dev
-# or
+gh repo clone cplayer11/video-highlight-tool
+cd video-highlight-tool
+yarn
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 部署網址
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+待補

@@ -1,103 +1,128 @@
-import Image from "next/image";
+'use client';
+
+import VideoUploader from '@/components/VideoUploader';
+import VideoPlayer from '@/components/VideoPlayer';
+import TranscriptEditor from '@/components/TranscriptEditor';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  APIError,
+  TranscriptAPISuccess,
+  TranscriptSection,
+  TranscriptSegment,
+} from '@/types/transcript';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<TranscriptSection[]>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const [highlightIds, setHighlightIds] = useState<Set<string>>(new Set());
+  const [duration, setDuration] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [currentSegmentId, setCurrentSegmentId] = useState<string | null>(null);
+
+  const highlights = useMemo(() => {
+    return transcript
+      .flatMap((section) => section.segments)
+      .filter((seg) => highlightIds.has(seg.id));
+  }, [highlightIds, transcript]);
+
+  const handleUpload = useCallback(async (file: File) => {
+    const url = URL.createObjectURL(file);
+    setVideoUrl(url);
+    setError(null);
+
+    try {
+      const newDuration = await getVideoDuration(file);
+
+      const res = await fetch('/api/transcript', {
+        method: 'POST',
+        body: JSON.stringify({ duration: newDuration }),
+      });
+
+      if (!res.ok) {
+        const errData: APIError = await res.json();
+        setError(errData.error || '未知錯誤');
+        return;
+      }
+
+      const data: TranscriptAPISuccess = await res.json();
+      setTranscript(data.transcript);
+      const newHighlights = data.transcript
+        .flatMap((section) => section.segments)
+        .filter((seg) => seg.highlight);
+      setDuration(newDuration);
+      setCurrentTime(newHighlights[0]?.start ?? 0);
+      setHighlightIds(new Set(newHighlights.map((seg) => seg.id)));
+    } catch (error) {
+      console.error(error);
+      setError('無法取得逐字稿，請檢查後再試');
+    }
+  }, []);
+
+  const toggleHighlight = useCallback((segId: string) => {
+    setHighlightIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(segId)) {
+        next.delete(segId);
+      } else {
+        next.add(segId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleTimeUpdate = useCallback((time: number) => {
+    setCurrentTime(time);
+  }, []);
+
+  const handleSegmentChange = useCallback((seg: TranscriptSegment | null) => {
+    setCurrentSegmentId(seg ? seg.id : null);
+  }, []);
+
+  const seekTo = useCallback((time: number) => {
+    setCurrentTime(time);
+  }, []);
+
+  return (
+    <main className="mx-auto flex h-screen max-w-4xl flex-col bg-gray-50 p-4">
+      <div className="m-4 rounded-md bg-white p-4 shadow">
+        <VideoUploader onUpload={handleUpload} />
+        {error && <div className="mt-2 rounded bg-red-100 p-3 text-sm text-red-700">{error}</div>}
+      </div>
+      {videoUrl && !error && (
+        <div className="flex flex-col overflow-hidden md:flex-row">
+          <div className="h-1/2 w-full overflow-y-auto p-4 md:h-full md:w-1/2">
+            <TranscriptEditor
+              transcript={transcript}
+              highlightIds={highlightIds}
+              // currentTime={currentTime}
+              onToggleHighlight={toggleHighlight}
+              onSeek={seekTo}
+              currentSegmentId={currentSegmentId}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div className="flex h-1/2 w-full flex-1 flex-col bg-[#1f2937] p-4 text-white md:h-full">
+            <VideoPlayer
+              videoUrl={videoUrl}
+              highlights={highlights}
+              duration={duration}
+              currentTime={currentTime}
+              onTimeUpdate={handleTimeUpdate}
+              onSegmentChange={handleSegmentChange}
+            />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      )}
+    </main>
   );
+}
+
+async function getVideoDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => resolve(video.duration);
+    video.src = URL.createObjectURL(file);
+  });
 }
