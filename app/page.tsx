@@ -33,7 +33,6 @@ export default function Home() {
       return;
     }
     const url = URL.createObjectURL(file);
-    setVideoUrl(url);
     setError(null);
 
     try {
@@ -45,12 +44,12 @@ export default function Home() {
 
       if (!res.ok) {
         const errData: APIError = await res.json();
-        setError(errData.error || '未知錯誤');
-        URL.revokeObjectURL(url);
-        return;
+        throw new Error(errData.error || '未知錯誤');
       }
 
       const data: TranscriptAPISuccess = await res.json();
+
+      setVideoUrl(url);
       setTranscript(data.transcript);
       const newHighlights = data.transcript
         .flatMap((section) => section.segments)
