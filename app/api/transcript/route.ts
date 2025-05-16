@@ -73,7 +73,7 @@ function generateMockTranscript(duration: number): TranscriptSection[] {
     ];
   }
 
-  const segmentsCount = Math.ceil((duration - MESSAGE_DURATION * 5) / 2 / MOCK_INTERVAL);
+  const segmentsCount = Math.ceil((duration - MESSAGE_DURATION * 6) / 2 / MOCK_INTERVAL);
   const mockResult: TranscriptSection[] = [
     {
       title: 'Introduction',
