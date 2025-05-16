@@ -29,10 +29,8 @@ export default function TranscriptEditor({
   );
 
   useEffect(() => {
-    console.log(currentSegmentId);
     if (currentSegmentId) {
       const el = document.getElementById(currentSegmentId);
-      console.log(currentSegmentId, el);
       if (el && containerRef.current) {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
