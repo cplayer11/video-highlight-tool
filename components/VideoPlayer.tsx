@@ -122,7 +122,7 @@ export default function VideoPlayer({
         )}
       </div>
 
-      <div className="flex items-center justify-center gap-6 bg-gray-800 py-2">
+      <div className="flex items-center justify-between gap-6 bg-gray-800 py-2">
         <button onClick={seekToPreviousHighlight} className="transition-transform hover:scale-110">
           <Image src="/icons/prev.svg" alt="Prev" width="24" height="24" className="invert" />
         </button>
