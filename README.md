@@ -28,7 +28,7 @@
 
 ### Vercel
 
-專為 Next.js 開發的部署平台
+專為 Next.js 開發的部署平台，可與Github串接並快速部署
 
 ---
 
@@ -43,4 +43,4 @@ yarn dev
 
 ## 🚀 部署網址
 
-待補
+https://video-highlight-tool-ten.vercel.app/
