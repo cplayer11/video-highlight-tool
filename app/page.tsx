@@ -28,13 +28,16 @@ export default function Home() {
   }, [highlightIds, transcript]);
 
   const handleUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('video/')) {
+      setError('請上傳影片檔案。');
+      return;
+    }
     const url = URL.createObjectURL(file);
     setVideoUrl(url);
     setError(null);
 
     try {
-      const newDuration = await getVideoDuration(file);
-
+      const newDuration = await getVideoDuration(file, url);
       const res = await fetch('/api/transcript', {
         method: 'POST',
         body: JSON.stringify({ duration: newDuration }),
@@ -43,6 +46,7 @@ export default function Home() {
       if (!res.ok) {
         const errData: APIError = await res.json();
         setError(errData.error || '未知錯誤');
+        URL.revokeObjectURL(url);
         return;
       }
 
@@ -55,8 +59,8 @@ export default function Home() {
       setCurrentTime(newHighlights[0]?.start ?? 0);
       setHighlightIds(new Set(newHighlights.map((seg) => seg.id)));
     } catch (error) {
-      console.error(error);
-      setError('無法取得逐字稿，請檢查後再試');
+      setError((error as Error)?.message ?? '無法取得逐字稿，請檢查後再試');
+      URL.revokeObjectURL(url);
     }
   }, []);
 
@@ -118,11 +122,21 @@ export default function Home() {
   );
 }
 
-async function getVideoDuration(file: File): Promise<number> {
-  return new Promise((resolve) => {
+async function getVideoDuration(file: File, url: string): Promise<number> {
+  return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
-    video.onloadedmetadata = () => resolve(video.duration);
-    video.src = URL.createObjectURL(file);
+    video.onloadedmetadata = () => {
+      if (isNaN(video.duration) || video.duration <= 0) {
+        reject(new Error('無法取得影片時長，請確認檔案是否正確。'));
+      } else {
+        resolve(video.duration);
+      }
+    };
+
+    video.onerror = () => {
+      reject(new Error('無法載入影片，請確認檔案是否正確。'));
+    };
+    video.src = url;
   });
 }

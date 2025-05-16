@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 const MESSAGE_DURATION = 5;
 const MOCK_INTERVAL = 15;
+const MINIUM_DURATION = MESSAGE_DURATION * 4;
 
 export async function POST(req: Request): Promise<NextResponse<TranscriptAPIResponse>> {
   const { duration } = await req.json();
@@ -11,8 +12,11 @@ export async function POST(req: Request): Promise<NextResponse<TranscriptAPIResp
   if (!isNumber(duration)) {
     return NextResponse.json({ error: 'Duration Error' }, { status: 400 });
   }
-  if (duration < MESSAGE_DURATION * 4) {
-    return NextResponse.json({ error: 'This video is too short.' }, { status: 400 });
+  if (duration < MINIUM_DURATION) {
+    return NextResponse.json(
+      { error: `This video is too short. Minium: ${MINIUM_DURATION} secs` },
+      { status: 400 }
+    );
   }
   const transcript = generateMockTranscript(duration);
   return NextResponse.json({ transcript });
