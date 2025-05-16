@@ -23,7 +23,7 @@ export async function POST(req: Request): Promise<NextResponse<TranscriptAPIResp
 }
 
 function generateMockTranscript(duration: number): TranscriptSection[] {
-  if (duration < MESSAGE_DURATION * 6) {
+  if (duration < MESSAGE_DURATION * 6 + MOCK_INTERVAL) {
     const tempGap = (duration - MESSAGE_DURATION * 2) / 3;
     return [
       {
